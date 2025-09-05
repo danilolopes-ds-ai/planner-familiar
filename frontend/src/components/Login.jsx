@@ -30,6 +30,20 @@ const Login = ({ setIsAuthenticated }) => {
     setError('')
 
     try {
+      // Verificar se o backend está disponível primeiro
+      const healthCheck = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'OPTIONS',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).catch(() => null)
+
+      if (!healthCheck) {
+        setError('Erro de conexão. Verifique se o servidor está rodando.')
+        setLoading(false)
+        return
+      }
+
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -38,16 +52,19 @@ const Login = ({ setIsAuthenticated }) => {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token)
-        setIsAuthenticated(true)
-        navigate('/dashboard')
-      } else {
+      if (!response.ok) {
+        const data = await response.json()
         setError(data.message || 'Erro ao fazer login')
+        return
       }
+
+      const data = await response.json()
+      localStorage.setItem('token', data.token)
+      setIsAuthenticated(true)
+      navigate('/dashboard')
+      
     } catch (error) {
+      console.error('Login error:', error)
       setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
