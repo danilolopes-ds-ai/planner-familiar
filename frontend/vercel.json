@@ -1,9 +1,11 @@
 {
-  "name": "financas-familiares-frontend",
+  "name": "financas-familiares",
+  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
+  "public": true,
   "rewrites": [
     {
       "source": "/(.*)",
@@ -11,6 +13,24 @@
     }
   ],
   "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(favicon.ico|manifest.json)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
     {
       "source": "/sw.js",
       "headers": [
@@ -20,5 +40,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "app.js": {
+      "runtime": "@vercel/node"
+    }
+  }
 }
