@@ -11,6 +11,9 @@ import CartaoCredito from './components/CartaoCredito'
 import Investimentos from './components/Investimentos'
 import DividasMetas from './components/DividasMetas'
 import Relatorios from './components/Relatorios'
+import ErrorBoundary from './components/ErrorBoundary'
+import LandingPage from './components/LandingPage'
+import { isProduction } from './config/api'
 import './App.css'
 
 function App() {
@@ -34,18 +37,27 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-background">
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              !isAuthenticated ? 
-                <Login setIsAuthenticated={setIsAuthenticated} /> : 
-                <Navigate to="/dashboard" replace />
-            } 
-          />
-          <Route 
+    <ErrorBoundary>
+      <Router>
+        <div className="min-h-screen bg-background">
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                isProduction ? 
+                  <LandingPage /> : 
+                  <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/login" 
+              element={
+                !isAuthenticated ? 
+                  <Login setIsAuthenticated={setIsAuthenticated} /> : 
+                  <Navigate to="/dashboard" replace />
+              } 
+            />
+            <Route 
             path="/register" 
             element={
               !isAuthenticated ? 
@@ -73,6 +85,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </ErrorBoundary>
   )
 }
 
