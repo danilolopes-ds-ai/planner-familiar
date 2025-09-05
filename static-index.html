@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças Familiares</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .icon {
+            width: 64px;
+            height: 64px;
+            background: #3b82f6;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .features {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .features h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .features ul {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            padding-left: 1.5rem;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 2rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">💰</div>
+        
+        <h1>Finanças Familiares</h1>
+        
+        <p class="subtitle">
+            Sistema de gestão financeira familiar.<br>
+            <strong>Status:</strong> Frontend funcionando ✅
+        </p>
+        
+        <div class="features">
+            <h3>Funcionalidades</h3>
+            <ul>
+                <li>Controle de orçamento familiar</li>
+                <li>Gestão de investimentos</li>
+                <li>Acompanhamento de cartões de crédito</li>
+                <li>Definição de metas financeiras</li>
+                <li>Relatórios e gráficos</li>
+            </ul>
+        </div>
+        
+        <div class="status">
+            <div class="pulse"></div>
+            Deploy funcionando no Vercel
+        </div>
+        
+        <a href="#" class="btn" onclick="showInfo()">
+            Informações do Projeto
+        </a>
+        
+        <div id="info" style="display: none; margin-top: 1rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; font-size: 0.875rem; color: #6b7280;">
+            <p><strong>Desenvolvido por:</strong> Danilo Lopes</p>
+            <p><strong>Tecnologias:</strong> React, Flask, Tailwind CSS</p>
+            <p><strong>Status:</strong> Em desenvolvimento</p>
+            <p><strong>Próxima etapa:</strong> Configuração do backend</p>
+        </div>
+    </div>
+    
+    <script>
+        function showInfo() {
+            const info = document.getElementById('info');
+            info.style.display = info.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Log para debug
+        console.log('✅ Site carregando corretamente');
+        console.log('📱 Aplicação: Finanças Familiares');
+        console.log('🚀 Deploy: Vercel');
+        console.log('⚡ Status: Funcionando');
+    </script>
+</body>
+</html>
