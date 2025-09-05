@@ -1,20 +1,12 @@
 
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './components/Login'
-import Register from './components/Register'
-import Dashboard from './components/Dashboard'
-import Layout from './components/Layout'
-import Orcamento from './components/Orcamento'
-import Lancamentos from './components/Lancamentos'
-import CartaoCredito from './components/CartaoCredito'
-import Investimentos from './components/Investimentos'
-import DividasMetas from './components/DividasMetas'
-import Relatorios from './components/Relatorios'
 import ErrorBoundary from './components/ErrorBoundary'
 import LandingPage from './components/LandingPage'
-import { isProduction } from './config/api'
 import './App.css'
+
+// Função para detectar ambiente de produção
+const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
