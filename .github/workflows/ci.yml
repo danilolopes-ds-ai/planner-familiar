@@ -1,0 +1,56 @@
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Create virtualenv (.venv)
+        run: python -m venv .venv
+      - name: Instalar dependências (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '& .\\.venv\\Scripts\\Activate.ps1; npm ci'
+      - name: Instalar dependências (não-Windows)
+        if: runner.os != 'Windows'
+        run: . .venv/bin/activate && npm ci
+      - name: Rodar lint
+        shell: pwsh
+        run: |
+          if ($env:RUNNER_OS -eq 'Windows') {
+            & .\.venv\Scripts\Activate.ps1; npm run lint
+          } else {
+            . .venv/bin/activate && npm run lint
+          }
+      - name: Rodar testes frontend
+        shell: pwsh
+        run: |
+          if ($env:RUNNER_OS -eq 'Windows') {
+            & .\.venv\Scripts\Activate.ps1; npm test
+          } else {
+            . .venv/bin/activate && npm test
+          }
+      - name: Rodar testes backend
+        shell: pwsh
+        run: |
+          if ($env:RUNNER_OS -eq 'Windows') {
+            & .\.venv\Scripts\Activate.ps1; python -m pytest tests_backend.py -v
+          } else {
+            . .venv/bin/activate && python -m pytest tests_backend.py -v
+          }

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Create virtualenv (.venv)
+        run: python -m venv .venv
+
+      - name: Install dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: "& .\\.venv\\Scripts\\Activate.ps1; npm ci"
+
+      - name: Install dependencies
+        if: runner.os != 'Windows'
+        run: . .venv/bin/activate && npm ci
+
+      - name: Run tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: "& .\\.venv\\Scripts\\Activate.ps1; npm test --silent"
+
+      - name: Run tests
+        if: runner.os != 'Windows'
+        run: . .venv/bin/activate && npm test --silent
+
+      - name: Run lint
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: "& .\\.venv\\Scripts\\Activate.ps1; npm run lint"
+
+      - name: Run lint
+        if: runner.os != 'Windows'
+        run: . .venv/bin/activate && npm run lint
