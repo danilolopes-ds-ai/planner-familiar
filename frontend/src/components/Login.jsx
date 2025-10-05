@@ -30,20 +30,6 @@ const Login = ({ setIsAuthenticated }) => {
     setError('')
 
     try {
-      // Verificar se o backend está disponível primeiro
-      const healthCheck = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'OPTIONS',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).catch(() => null)
-
-      if (!healthCheck) {
-        setError('Erro de conexão. Verifique se o servidor está rodando.')
-        setLoading(false)
-        return
-      }
-
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {

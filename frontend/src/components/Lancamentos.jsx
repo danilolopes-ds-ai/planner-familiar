@@ -75,13 +75,15 @@ const Lancamentos = () => {
 
     try {
       const token = localStorage.getItem('token')
-  const response = await fetch(`${API_BASE_URL}/transactions`, {
+      const payload = { ...formData }
+      console.log('[DEBUG] Enviando transação', payload)
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-access-token': token,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -98,8 +100,10 @@ const Lancamentos = () => {
         })
         fetchTransactions()
       } else {
-        const data = await response.json()
-        setError(data.message || 'Erro ao criar transação')
+  let data = {}
+  try { data = await response.json() } catch {}
+  console.error('[DEBUG] Erro criar transação', response.status, data)
+  setError(data.error || data.message || `Erro ao criar transação (${response.status})`)
       }
     } catch (error) {
       setError('Erro de conexão')

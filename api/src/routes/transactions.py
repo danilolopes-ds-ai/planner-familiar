@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime, date
 from src.models import db
 from src.models.transaction import Transaction, CreditCard, Investment, Debt, Goal
@@ -16,24 +16,44 @@ def get_transactions(current_user):
 @transactions_bp.route('/transactions', methods=['POST'])
 @token_required
 def create_transaction(current_user):
-    data = request.get_json()
-    
-    # Converter string de data para objeto date
-    transaction_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    
-    transaction = Transaction()
-    transaction.family_id = current_user.family_id
-    transaction.date = transaction_date
-    transaction.description = data['description']
-    transaction.category = data['category']
-    transaction.amount = float(data['amount'])
-    transaction.transaction_type = data['transaction_type']
-    transaction.payment_method = data['payment_method']
-    
-    db.session.add(transaction)
-    db.session.commit()
-    
-    return jsonify(transaction.to_dict()), 201
+    logger = current_app.logger
+    try:
+        data = request.get_json(force=True, silent=False) or {}
+        missing = [f for f in ['date','description','category','amount','transaction_type','payment_method'] if f not in data or data[f] in (None, '')]
+        if missing:
+            return jsonify({'error':'validation_error','missing_fields':missing}), 400
+
+        # Validar tipo
+        if data['transaction_type'] not in ['receita','despesa']:
+            return jsonify({'error':'invalid_transaction_type'}), 400
+
+        # Converter string de data para objeto date
+        try:
+            transaction_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        except Exception:
+            return jsonify({'error':'invalid_date_format','expected':'YYYY-MM-DD'}), 400
+
+        try:
+            amount_value = float(str(data['amount']).replace(',','.'))
+        except Exception:
+            return jsonify({'error':'invalid_amount'}), 400
+        
+        transaction = Transaction(
+            family_id=current_user.family_id,
+            date=transaction_date,
+            description=data['description'],
+            category=data['category'],
+            amount=amount_value,
+            transaction_type=data['transaction_type'],
+            payment_method=data['payment_method']
+        )
+        db.session.add(transaction)
+        db.session.commit()
+        return jsonify(transaction.to_dict()), 201
+    except Exception as e:
+        logger.exception('Erro ao criar transação')
+        db.session.rollback()
+        return jsonify({'error':'internal_error','detail':str(e)}), 500
 
 @transactions_bp.route('/transactions/<int:transaction_id>', methods=['DELETE'])
 @token_required
@@ -50,80 +70,90 @@ def delete_transaction(current_user, transaction_id):
 @transactions_bp.route('/dashboard/summary', methods=['GET'])
 @token_required
 def get_dashboard_summary(current_user):
-    # Obter mês e ano atual
+    logger = current_app.logger
+    dialect = db.session.bind.dialect.name
+    logger.debug(f"Calculando dashboard summary usando dialect={dialect}")
     current_month = date.today().month
     current_year = date.today().year
-    
-    # Receitas do mês atual
-    total_income = db.session.query(func.sum(Transaction.amount)).filter(
-        Transaction.family_id == current_user.family_id,
-        Transaction.transaction_type == 'receita',
-        extract('month', Transaction.date) == current_month,
-        extract('year', Transaction.date) == current_year
-    ).scalar() or 0
-    
-    # Despesas do mês atual
-    total_expenses = db.session.query(func.sum(Transaction.amount)).filter(
-        Transaction.family_id == current_user.family_id,
-        Transaction.transaction_type == 'despesa',
-        extract('month', Transaction.date) == current_month,
-        extract('year', Transaction.date) == current_year
-    ).scalar() or 0
-    
-    # Saldo
-    balance = total_income - total_expenses
-    
-    # Despesas por categoria (mês atual)
-    expenses_by_category = db.session.query(
-        Transaction.category,
-        func.sum(Transaction.amount).label('total')
-    ).filter(
-        Transaction.family_id == current_user.family_id,
-        Transaction.transaction_type == 'despesa',
-        extract('month', Transaction.date) == current_month,
-        extract('year', Transaction.date) == current_year
-    ).group_by(Transaction.category).all()
-    
-    # Evolução dos últimos 6 meses
-    monthly_evolution = []
-    for i in range(6):
-        month_date = date.today().replace(day=1)
-        if month_date.month - i <= 0:
-            target_month = 12 + (month_date.month - i)
-            target_year = month_date.year - 1
-        else:
-            target_month = month_date.month - i
-            target_year = month_date.year
-        
-        month_income = db.session.query(func.sum(Transaction.amount)).filter(
+
+    def month_filter(column, target_month):
+        if dialect == 'sqlite':
+            return func.strftime('%m', column) == f"{target_month:02d}"
+        return extract('month', column) == target_month
+
+    def year_filter(column, target_year):
+        if dialect == 'sqlite':
+            return func.strftime('%Y', column) == str(target_year)
+        return extract('year', column) == target_year
+
+    try:
+        total_income = db.session.query(func.sum(Transaction.amount)).filter(
             Transaction.family_id == current_user.family_id,
             Transaction.transaction_type == 'receita',
-            extract('month', Transaction.date) == target_month,
-            extract('year', Transaction.date) == target_year
+            month_filter(Transaction.date, current_month),
+            year_filter(Transaction.date, current_year)
         ).scalar() or 0
-        
-        month_expenses = db.session.query(func.sum(Transaction.amount)).filter(
+
+        total_expenses = db.session.query(func.sum(Transaction.amount)).filter(
             Transaction.family_id == current_user.family_id,
             Transaction.transaction_type == 'despesa',
-            extract('month', Transaction.date) == target_month,
-            extract('year', Transaction.date) == target_year
+            month_filter(Transaction.date, current_month),
+            year_filter(Transaction.date, current_year)
         ).scalar() or 0
-        
-        monthly_evolution.append({
-            'month': f"{target_month:02d}/{target_year}",
-            'income': month_income,
-            'expenses': month_expenses
+
+        balance = total_income - total_expenses
+
+        expenses_by_category = db.session.query(
+            Transaction.category,
+            func.sum(Transaction.amount).label('total')
+        ).filter(
+            Transaction.family_id == current_user.family_id,
+            Transaction.transaction_type == 'despesa',
+            month_filter(Transaction.date, current_month),
+            year_filter(Transaction.date, current_year)
+        ).group_by(Transaction.category).all()
+
+        # Últimos 6 meses
+        monthly_evolution = []
+        ref = date.today().replace(day=1)
+        for i in range(5, -1, -1):  # ordem cronológica direta
+            # calcular mês alvo retroativo
+            target_year = ref.year
+            target_month = ref.month - i
+            while target_month <= 0:
+                target_month += 12
+                target_year -= 1
+
+            month_income = db.session.query(func.sum(Transaction.amount)).filter(
+                Transaction.family_id == current_user.family_id,
+                Transaction.transaction_type == 'receita',
+                month_filter(Transaction.date, target_month),
+                year_filter(Transaction.date, target_year)
+            ).scalar() or 0
+
+            month_expenses = db.session.query(func.sum(Transaction.amount)).filter(
+                Transaction.family_id == current_user.family_id,
+                Transaction.transaction_type == 'despesa',
+                month_filter(Transaction.date, target_month),
+                year_filter(Transaction.date, target_year)
+            ).scalar() or 0
+
+            monthly_evolution.append({
+                'month': f"{target_month:02d}/{target_year}",
+                'income': month_income,
+                'expenses': month_expenses
+            })
+
+        return jsonify({
+            'total_income': total_income,
+            'total_expenses': total_expenses,
+            'balance': balance,
+            'expenses_by_category': [{'category': cat, 'amount': float(total)} for cat, total in expenses_by_category],
+            'monthly_evolution': monthly_evolution
         })
-    
-    monthly_evolution.reverse()  # Ordem cronológica
-    
-    return jsonify({
-        'total_income': total_income,
-        'total_expenses': total_expenses,
-        'balance': balance,
-        'expenses_by_category': [{'category': cat, 'amount': float(total)} for cat, total in expenses_by_category],
-        'monthly_evolution': monthly_evolution
-    })
+    except Exception as e:
+        logger.exception('Erro ao gerar dashboard summary')
+        return jsonify({'error':'internal_error','detail':str(e),'dialect':dialect}), 500
 
 # Rotas para Cartões de Crédito
 @transactions_bp.route('/credit-cards', methods=['GET'])

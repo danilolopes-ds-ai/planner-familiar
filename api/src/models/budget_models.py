@@ -1,45 +1,81 @@
-from datetime import datetime, date, timedelta
-from sqlalchemy import func, and_, text
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from sqlalchemy import text
 from flask import current_app
+from src.models import db as global_db
 
 # Acesso ao db através do current_app para evitar import circular
 def get_db():
     """Helper para acessar db sem importação circular"""
     try:
         return current_app.extensions['sqlalchemy']
-    except:
-        # Fallback para desenvolvimento
-        from src.models import db
-        return db
+    except Exception:
+        return global_db
 
 class Budget:
     """Modelo Budget usando padrão sem importação circular"""
     
     @staticmethod
     def create_budget_table():
-        """Cria a tabela de orçamento dinamicamente"""
+        """Cria a tabela budgets se não existir; ajusta schema incorreto (migração leve)."""
         db = get_db()
-        
-        # Definir tabela budget se não existir
-        try:
-            with db.engine.connect() as conn:
-                # Tentar consultar a tabela para ver se existe
+        with db.engine.connect() as conn:
+            # Existe?
+            table_exists = False
+            try:
                 conn.execute(text('SELECT 1 FROM budgets LIMIT 1'))
-        except:
-            # Tabela não existe, criar
-            with db.engine.connect() as conn:
+                table_exists = True
+            except Exception:
+                table_exists = False
+
+            if table_exists:
+                # Validar schema (family_id deve ser TEXT)
+                try:
+                    info = conn.execute(text('PRAGMA table_info(budgets)')).fetchall()
+                    columns = {row[1]: row[2].upper() for row in info}
+                    needs_migration = False
+                    # family_id incorreto se INTEGER
+                    if columns.get('family_id', '').startswith('INT'):
+                        needs_migration = True
+                    if needs_migration:
+                        # Renomear e recriar
+                        conn.execute(text('ALTER TABLE budgets RENAME TO budgets_old'))
+                        conn.execute(text('''
+                            CREATE TABLE budgets (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                family_id TEXT NOT NULL,
+                                month INTEGER NOT NULL,
+                                year INTEGER NOT NULL,
+                                total_income FLOAT DEFAULT 0.0,
+                                total_planned FLOAT DEFAULT 0.0,
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                            )
+                        '''))
+                        # Copiar dados possíveis
+                        try:
+                            conn.execute(text('''
+                                INSERT INTO budgets (id, family_id, month, year, total_income, total_planned, created_at, updated_at)
+                                SELECT id, CAST(family_id AS TEXT), month, year, total_income, total_planned, created_at, updated_at
+                                FROM budgets_old
+                            '''))
+                        except Exception:
+                            pass
+                        conn.execute(text('DROP TABLE budgets_old'))
+                        conn.commit()
+                except Exception:
+                    pass
+            else:
+                # Criar nova
                 conn.execute(text('''
                     CREATE TABLE budgets (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        family_id INTEGER NOT NULL,
+                        family_id TEXT NOT NULL,
                         month INTEGER NOT NULL,
                         year INTEGER NOT NULL,
                         total_income FLOAT DEFAULT 0.0,
                         total_planned FLOAT DEFAULT 0.0,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (family_id) REFERENCES users (family_id)
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     )
                 '''))
                 conn.commit()

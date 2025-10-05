@@ -2,7 +2,7 @@ import os
 import sys
 
 import logging
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 from src.models import db
 from src.routes.user import user_bp
@@ -18,6 +18,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend', 'dist')
 
 app = Flask(__name__, static_folder=static_dir)
+
+# Logging detalhado inicial
+logger = logging.getLogger("planner")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
+if not logger.handlers:
+    logger.addHandler(handler)
 
 # Configuração de produção
 app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'asdf#FGSgvasgf$5$WGT')
@@ -71,15 +79,60 @@ else:
     logging.basicConfig(level=logging.DEBUG)
 
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        logger.debug(f"DB initialized at {db_path}")
+    except Exception as e:
+        logger.exception("Erro ao inicializar banco de dados")
 
 @app.route('/api/health')
 def health():
+    from src.models.user import User
+    users = 0
+    try:
+        users = User.query.count()
+    except Exception as e:
+        logger.warning(f"Health count users falhou: {e}")
     return jsonify({
         'status': 'ok',
         'db_path': db_path,
-        'env': flask_env
+        'env': flask_env,
+        'users': users,
+        'request_id': request.headers.get('X-Request-Id')
     }), 200
+
+@app.route('/api/debug/routes')
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+              'endpoint': rule.endpoint,
+              'methods': list(rule.methods or []),
+              'rule': str(rule)
+        })
+    return jsonify(routes)
+
+@app.route('/api/debug/db')
+def debug_db():
+    from sqlalchemy import text
+    info = {}
+    try:
+        engine = db.engine
+        with engine.connect() as conn:
+            tables = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+            info['tables'] = [r[0] for r in tables]
+            info['dialect'] = engine.dialect.name
+            counts = {}
+            for t in info['tables']:
+                try:
+                    c = conn.execute(text(f'SELECT COUNT(*) FROM {t}')).fetchone()[0]
+                    counts[t] = c
+                except Exception as e:
+                    counts[t] = f'err: {e}'
+            info['counts'] = counts
+    except Exception as e:
+        info['error'] = str(e)
+    return jsonify(info), 200
 
 @app.route('/manifest.json')
 def manifest():
@@ -102,7 +155,13 @@ def serve(path):
         if os.path.exists(index_path):
             return send_from_directory(app.static_folder, 'index.html')
         else:
+            logger.error("index.html not found in static folder")
             return "index.html not found", 404
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.exception("Unhandled exception")
+    return jsonify({'error': 'internal_error', 'detail': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
