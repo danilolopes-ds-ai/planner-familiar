@@ -9,16 +9,37 @@
   "orientation": "portrait-primary",
   "categories": ["finance", "productivity", "lifestyle"],
   "lang": "pt-BR",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicon.ico",
-      "sizes": "48x48",
+      "sizes": "48x48 32x32 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "180x180",
+      "type": "image/x-icon",
+      "purpose": "apple-touch-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "512x512",
+      "type": "image/x-icon",
+      "purpose": "maskable"
     }
   ],
   "features": [
     "Cross Platform",
     "fast",
     "simple"
+  ],
+  "screenshots": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "ios"
+    }
   ]
 }

@@ -46,7 +46,7 @@ const Layout = ({ setIsAuthenticated }) => {
             key={item.name}
             to={item.href}
             onClick={mobile ? () => setSidebarOpen(false) : undefined}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
               isActive
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -86,8 +86,8 @@ const Layout = ({ setIsAuthenticated }) => {
       </div>
 
       {/* Mobile Header */}
-      <div className="lg:hidden">
-        <div className="flex h-16 items-center gap-x-4 border-b bg-card px-4 shadow-sm sm:gap-x-6 sm:px-6">
+      <div className="lg:hidden sticky top-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="flex h-14 items-center gap-x-4 border-b bg-card/95 px-4 shadow-sm sm:gap-x-6 sm:px-6">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="lg:hidden">
@@ -132,8 +132,8 @@ const Layout = ({ setIsAuthenticated }) => {
 
       {/* Main Content */}
       <div className="lg:pl-72">
-        <main className="py-6">
-          <div className="px-4 sm:px-6 lg:px-8">
+        <main className="py-4 lg:py-6 pb-safe">
+          <div className="px-3 sm:px-4 lg:px-8">
             <Outlet />
           </div>
         </main>

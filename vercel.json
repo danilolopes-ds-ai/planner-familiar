@@ -2,37 +2,48 @@
   "version": 2,
   "builds": [
     {
-      "src": "financas-familiares/package.json",
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "financas-familiares/dist"
+        "distDir": "frontend/dist"
       }
     },
     {
-      "src": "api/index.py",
+      "src": "main.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/assets/(.*)",
-      "dest": "/financas-familiares/dist/assets/$1"
+      "dest": "/frontend/dist/assets/$1"
     },
     {
       "src": "/manifest.json",
-      "dest": "/financas-familiares/dist/manifest.json"
+      "dest": "/frontend/dist/manifest.json"
     },
     {
       "src": "/favicon.ico",
-      "dest": "/financas-familiares/dist/favicon.ico"
+      "dest": "/frontend/dist/favicon.ico"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "dest": "/main.py"
     },
     {
       "src": "/(.*)",
-      "dest": "/financas-familiares/dist/index.html"
+      "dest": "/frontend/dist/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
     }
   ]
 }
