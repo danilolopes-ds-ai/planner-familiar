@@ -2,7 +2,7 @@ import os
 import sys
 
 import logging
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from src.models import db
 from src.routes.user import user_bp
@@ -51,7 +51,14 @@ app.register_blueprint(budget_bp, url_prefix='/api')
 
 # Configuração de banco de dados
 # O caminho para o banco de dados é ajustado para a nova estrutura
-db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database', 'app.db')
+# Ajuste para ambiente serverless (Vercel) – usar /tmp para escrita
+if os.environ.get('VERCEL', ''):
+    runtime_db_dir = '/tmp'
+    os.makedirs(runtime_db_dir, exist_ok=True)
+    db_path = os.path.join(runtime_db_dir, 'app.db')
+else:
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database', 'app.db')
+
 database_url = os.environ.get('DATABASE_URL', f"sqlite:///{db_path}")
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -65,6 +72,22 @@ else:
 
 with app.app_context():
     db.create_all()
+
+@app.route('/api/health')
+def health():
+    return jsonify({
+        'status': 'ok',
+        'db_path': db_path,
+        'env': flask_env
+    }), 200
+
+@app.route('/manifest.json')
+def manifest():
+    # Servir manifest diretamente sem exigir auth
+    manifest_path = os.path.join(app.static_folder or '', 'manifest.json')
+    if app.static_folder and os.path.exists(manifest_path):
+        return send_from_directory(app.static_folder, 'manifest.json')
+    return jsonify({'name': 'Finanças Familiares'}), 200
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
