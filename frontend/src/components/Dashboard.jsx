@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -44,7 +45,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/dashboard/summary', {
+      const response = await fetch(`${API_BASE_URL}/dashboard/summary`, {
         headers: {
           'x-access-token': token,
         },
@@ -66,7 +67,7 @@ const Dashboard = () => {
   const fetchFamilyId = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/users/family-id', {
+      const response = await fetch(`${API_BASE_URL}/users/family-id`, {
         headers: {
           'x-access-token': token,
         },

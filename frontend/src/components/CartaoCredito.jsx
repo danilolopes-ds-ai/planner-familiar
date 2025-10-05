@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../config/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -41,7 +42,7 @@ const CartaoCredito = () => {
   const fetchCards = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/credit-cards', {
+  const response = await fetch(`${API_BASE_URL}/credit-cards`, {
         headers: {
           'x-access-token': token,
         },
@@ -66,7 +67,7 @@ const CartaoCredito = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/credit-cards', {
+  const response = await fetch(`${API_BASE_URL}/credit-cards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ const CartaoCredito = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/credit-cards/${cardId}`, {
+  const response = await fetch(`${API_BASE_URL}/credit-cards/${cardId}`, {
         method: 'DELETE',
         headers: {
           'x-access-token': token,
@@ -158,7 +159,7 @@ const CartaoCredito = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/credit-cards/${selectedCard.id}/purchases`, {
+  const response = await fetch(`${API_BASE_URL}/credit-cards/${selectedCard.id}/purchases`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

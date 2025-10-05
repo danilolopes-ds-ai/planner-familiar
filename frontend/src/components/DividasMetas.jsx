@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../config/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -49,7 +50,7 @@ const DividasMetas = () => {
   const fetchDebts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/debts', {
+  const response = await fetch(`${API_BASE_URL}/debts`, {
         headers: {
           'x-access-token': token,
         },
@@ -71,7 +72,7 @@ const DividasMetas = () => {
   const fetchGoals = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/goals', {
+  const response = await fetch(`${API_BASE_URL}/goals`, {
         headers: {
           'x-access-token': token,
         },
@@ -94,7 +95,7 @@ const DividasMetas = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/debts', {
+  const response = await fetch(`${API_BASE_URL}/debts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +130,7 @@ const DividasMetas = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/goals', {
+  const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ const DividasMetas = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/goals/${selectedGoal.id}/update`, {
+  const response = await fetch(`${API_BASE_URL}/goals/${selectedGoal.id}/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +200,7 @@ const DividasMetas = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/debts/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/debts/${id}`, {
         method: 'DELETE',
         headers: {
           'x-access-token': token,
@@ -221,7 +222,7 @@ const DividasMetas = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/goals/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/goals/${id}`, {
         method: 'DELETE',
         headers: {
           'x-access-token': token,

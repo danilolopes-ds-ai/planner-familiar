@@ -24,6 +24,7 @@ import {
   CartesianGrid, 
   Tooltip
 } from 'recharts'
+import { API_BASE_URL } from '../config/api'
 
 const Investimentos = () => {
   const [investments, setInvestments] = useState([])
@@ -61,7 +62,7 @@ const Investimentos = () => {
   const fetchInvestments = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/investments', {
+      const response = await fetch(`${API_BASE_URL}/investments`, {
         headers: {
           'x-access-token': token,
         },
@@ -83,7 +84,7 @@ const Investimentos = () => {
   const fetchSummary = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/investments/summary', {
+      const response = await fetch(`${API_BASE_URL}/investments/summary`, {
         headers: {
           'x-access-token': token,
         },
@@ -104,7 +105,7 @@ const Investimentos = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/investments', {
+      const response = await fetch(`${API_BASE_URL}/investments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ const Investimentos = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/investments/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/investments/${id}`, {
         method: 'DELETE',
         headers: {
           'x-access-token': token,

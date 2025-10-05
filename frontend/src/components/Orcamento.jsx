@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../config/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -141,7 +142,7 @@ const Orcamento = () => {
   const fetchBudgetData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/budget/current', {
+  const response = await fetch(`${API_BASE_URL}/budget/current`, {
         headers: { 'x-access-token': token }
       })
       
@@ -165,7 +166,7 @@ const Orcamento = () => {
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/budget/analytics', {
+  const response = await fetch(`${API_BASE_URL}/budget/analytics`, {
         headers: { 'x-access-token': token }
       })
       
@@ -181,7 +182,7 @@ const Orcamento = () => {
   const fetchSuggestions = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/budget/suggestions', {
+  const response = await fetch(`${API_BASE_URL}/budget/suggestions`, {
         headers: { 'x-access-token': token }
       })
       
@@ -197,7 +198,7 @@ const Orcamento = () => {
   const saveBudget = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/budget', {
+  const response = await fetch(`${API_BASE_URL}/budget`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +227,7 @@ const Orcamento = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/budget/${currentBudget.id}/categories`, {
+  const response = await fetch(`${API_BASE_URL}/budget/${currentBudget.id}/categories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +257,7 @@ const Orcamento = () => {
   const updateCategory = async (categoryId, updates) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/budget/categories/${categoryId}`, {
+  const response = await fetch(`${API_BASE_URL}/budget/categories/${categoryId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +283,7 @@ const Orcamento = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/budget/categories/${categoryId}`, {
+  const response = await fetch(`${API_BASE_URL}/budget/categories/${categoryId}`, {
         method: 'DELETE',
         headers: { 'x-access-token': token }
       })
@@ -317,7 +318,7 @@ const Orcamento = () => {
       }
 
       // Salvar no backend como transação
-      const response = await fetch('http://localhost:5000/api/transactions', {
+  const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -389,7 +390,7 @@ const Orcamento = () => {
       }
 
       // Salvar no backend como transação
-      const response = await fetch('http://localhost:5000/api/transactions', {
+  const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
